@@ -20,9 +20,9 @@ For [Hackonomics 2025](https://hackonomics25.devpost.com/) hackathon project Eco
 
 ```
 be/
-├── main.py             # Main application file
-├── requirements.txt    # Python dependencies
-└── .env               # Environment variables (create this)
+├── main.py             
+├── requirements.txt    
+└── .env               
 ```
 
 ## Getting Started
