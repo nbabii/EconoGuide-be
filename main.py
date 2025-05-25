@@ -3,13 +3,23 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List
 import json
+import os
 
 app = FastAPI(title="EconoGuide API")
 
-# Configure CORS
+ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://localhost:8080",
+    "https://econoguide-frontend-349130934423.us-central1.run.app"
+]
+
+PROD_FRONTEND_URL = os.getenv("ALLOWED_FRONTEND_URL")
+if PROD_FRONTEND_URL:
+    ALLOWED_ORIGINS.append(PROD_FRONTEND_URL)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # React default port
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -22,7 +32,6 @@ class QuizAnswer(BaseModel):
 class QuizSubmission(BaseModel):
     answers: List[QuizAnswer]
 
-# Mock questions data
 MOCK_QUESTIONS = [
     {
         "question": "What is the primary purpose of a budget?",
@@ -54,9 +63,8 @@ MOCK_QUESTIONS = [
             "High-yield savings accounts"
         ]
     }
-] * 5  # Multiply to get 15 questions (temporary for mock data)
+] * 5
 
-# Mock recommendations data
 MOCK_RECOMMENDATIONS = [
     {
         "title": "Build an Emergency Fund",
@@ -76,7 +84,7 @@ MOCK_RECOMMENDATIONS = [
             "Celebrate reaching initial goal"
         ]
     }
-] * 7  # Multiply to get 7 recommendations (temporary for mock data)
+] * 7
 
 @app.get("/")
 async def root():
@@ -92,7 +100,6 @@ async def generate_questions():
 @app.post("/submit-quiz")
 async def submit_quiz(submission: QuizSubmission):
     try:
-        # Mock scoring logic - each answer gets a random score between 60 and 100
         import random
         total_score = sum(random.randint(60, 100) for _ in submission.answers)
         
