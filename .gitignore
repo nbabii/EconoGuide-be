@@ -4,8 +4,7 @@ __pycache__/
 *.so
 .Python
 venv/
-ENV/
-env/
+venv_hack/
 .env
 
 .Python
@@ -27,3 +26,4 @@ wheels/
 .vscode/
 *.code-workspace
 .DS_Store
+econoguide-gem_sa.json

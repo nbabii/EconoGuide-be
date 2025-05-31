@@ -39,7 +39,11 @@ vertexai.init(project="econoguide", location="us-central1")
 model = GenerativeModel("gemini-2.0-flash")
 
 async def generate_quiz_questions():
-    prompt = """Generate 15 financial literacy assessment questions. Each question should have 5 answers that represent different levels of financial understanding, from basic to optimal choices. Return ONLY a JSON array in this exact format:
+    prompt = """You are a financial literacy coach.
+            By asking questions you need to understand how individuals care about personal finance.
+            Generate 15 financial literacy assessment questions to evaluate individual.
+            Each question should have 5 answers that represent different levels of financial understanding, from basic to optimal choices.
+            Return ONLY a JSON array in this exact format:
             [
                 {
                     "question": "What is the most effective way to build long-term wealth?",
@@ -56,8 +60,7 @@ async def generate_quiz_questions():
             Requirements:
             - Generate exactly 15 questions
             - Each question must have exactly 5 answers
-            - Answers should be ordered from basic (10 points) to optimal (100 points)
-            - Cover topics: budgeting, investing, debt, retirement, risk management
+            - Cover following topics in context of personal finances: budgeting, investing, debt, retirement, risk management
             - All answers should be technically valid but represent different levels of financial sophistication
             
             IMPORTANT: Return ONLY the JSON array, no additional text or explanation.
@@ -73,17 +76,13 @@ async def generate_quiz_questions():
             }
         )
 
-        # Clean the response text to ensure it only contains JSON
         response_text = response.text.strip()
-        # Remove any potential markdown code block markers
-        response_text = response_text.replace('```json', '').replace('```', '')
-        # Remove any leading/trailing whitespace or newlines
-        response_text = response_text.strip()
+        response_text = response_text.replace('```json', '').replace('```', '').strip()
+
 
         try:
             questions = json.loads(response_text)
             
-            # Validate the structure of the questions
             if not isinstance(questions, list):
                 raise ValueError("Response is not a JSON array")
             
@@ -95,13 +94,7 @@ async def generate_quiz_questions():
                 if not isinstance(q["answers"], list) or len(q["answers"]) != 5:
                     raise ValueError("Question must have exactly 5 answers")
 
-            frontend_questions = []
-            for q in questions:
-                frontend_questions.append({
-                    "question": q["question"],
-                    "answers": [a.split(" (")[0] for a in q["answers"]]  # Remove points from answers
-                })
-            return frontend_questions
+            return questions
 
         except json.JSONDecodeError as e:
             print(f"JSON Parse Error: {str(e)}")
