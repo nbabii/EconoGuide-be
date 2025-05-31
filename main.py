@@ -40,10 +40,22 @@ model = GenerativeModel("gemini-2.0-flash")
 
 async def generate_quiz_questions():
     prompt = """You are a financial literacy coach.
-            By asking questions you need to understand how individuals care about personal finance.
-            Generate 15 financial literacy assessment questions to evaluate individual.
-            Each question should have 5 answers that represent different levels of financial understanding, from basic to optimal choices.
-            Return ONLY a JSON array in this exact format:
+            You are a financial literacy coach.
+
+            Your task is to generate 15 single-choice financial literacy assessment questions.
+
+            Requirements:
+            - Each question must assess an individual's financial knowledge.
+            - Each question must have exactly 5 answer choices.
+            - All 5 answers must be technically valid but represent increasing levels of financial understanding, from basic to optimal.
+            - The 15 questions must collectively cover the following topics: budgeting, investing, debt, retirement, and risk management.
+            - Answers should reflect real-world financial concepts, habits, and tools (e.g., savings accounts, credit utilization, 401(k), diversification, insurance).
+            - Ensure that no answers are factually incorrect, just less optimal.
+
+            Format:
+            Return ONLY a JSON array in the **exact format** shown below. Do not include any explanation or text outside the array.
+
+            Example format:
             [
                 {
                     "question": "What is the most effective way to build long-term wealth?",
@@ -57,13 +69,11 @@ async def generate_quiz_questions():
                 }
             ]
 
-            Requirements:
-            - Generate exactly 15 questions
-            - Each question must have exactly 5 answers
-            - Cover following topics in context of personal finances: budgeting, investing, debt, retirement, risk management
-            - All answers should be technically valid but represent different levels of financial sophistication
-            
-            IMPORTANT: Return ONLY the JSON array, no additional text or explanation.
+            IMPORTANT:
+            - Return exactly 15 objects in the array.
+            - Each object must follow the format above.
+            - Do not add any commentary, markdown, or explanations.
+            - Output must be valid JSON only.
             """
 
     try:
