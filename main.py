@@ -118,9 +118,57 @@ async def generate_quiz_questions():
         )
 
 async def analyze_answers_and_generate_recommendations(answers: List[QuizAnswer]):
-    answers_text = "\n".join([f"Q{a.question_id}: {a.selected_answer}" for a in answers])
+    answers_text = "\n".join([
+        f"Question {a.question_id}: {a.question}\n"
+        f"Selected Answer: {a.selected_answer}\n"
+        f"All Options: {' | '.join(a.all_answers)}\n"
+        for a in answers
+    ])
     
-    prompt = f"""Based on these quiz answers about personal finance, generate personalized recommendations: {answers_text}"""
+    prompt = f"""You are a financial literacy coach.
+    Analyze these quiz answers and provide a comprehensive assessment with scores and recommendations.
+    Each question score is based on the answer selected by the user, min score is 10 and max score is 100.
+    The quiz answers are about personal finance and financial literacy of individual.
+    The quiz answers are about the following topics: budgeting, investing, debt, retirement, risk management.
+    The quiz answers are following:
+    
+    Quiz Responses:
+    {answers_text}
+
+    Provide a response in the following JSON format:
+    {{
+        "question_scores": [
+            {{
+                "question_id": number,
+                "question": string,
+                "selected_answer": string,
+                "score": number (10-100),
+                "explanation": string (brief explanation of the score)
+            }}
+        ],
+        "overall_assessment": {{
+            "total_score": number (sum of scores for all questions),
+            "score_interpretation": string (brief interpretation of the overall score)
+        }},
+        "targeted_recommendations": [
+            {{
+                "area": string (financial topic needing most improvement),
+                "current_status": string (brief assessment of understanding),
+                "improvement_plan": {{
+                    "immediate_actions": [string] (2-3 specific actions),
+                    "long_term_goals": [string] (2-3 goals),
+                    "resources": [string] (2-3 specific resources like books, websites, tools)
+                }}
+            }}
+        ]
+    }}
+
+    Requirements:
+    - Provide 5-7 targeted recommendations focusing on lowest scoring areas
+    - Keep explanations concise but actionable, and up to current date
+    - Include specific, practical resources for improvement
+
+    IMPORTANT: Return ONLY valid JSON, no additional text or explanation."""
 
     response = model.generate_content(
         prompt,
@@ -128,70 +176,21 @@ async def analyze_answers_and_generate_recommendations(answers: List[QuizAnswer]
             "temperature": 0.7,
             "top_p": 0.8,
             "top_k": 40
-        },
-        safety_settings={
-            "HARASSMENT": "block_none",
-            "HATE_SPEECH": "block_none",
-            "SEXUALLY_EXPLICIT": "block_none",
-            "DANGEROUS_CONTENT": "block_none"
-        },
-        stream=False,
-        tools=[{
-            "function_declarations": [{
-                "name": "generate_recommendations",
-                "description": "Generate financial recommendations based on quiz answers",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "recommendations": {
-                            "type": "array",
-                            "items": {
-                                "type": "object",
-                                "properties": {
-                                    "title": {
-                                        "type": "string",
-                                        "description": "Title of the recommendation"
-                                    },
-                                    "description": {
-                                        "type": "string",
-                                        "description": "Brief description of the recommendation"
-                                    },
-                                    "implementation_plan": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "string"
-                                        },
-                                        "minItems": 3,
-                                        "description": "List of implementation steps"
-                                    }
-                                },
-                                "required": ["title", "description", "implementation_plan"]
-                            },
-                            "minItems": 7,
-                            "maxItems": 7
-                        }
-                    },
-                    "required": ["recommendations"]
-                }
-            }]
-        }]
+        }
     )
 
     try:
-        recommendations = json.loads(response.text)
-        
-        if not isinstance(recommendations, list):
-            raise ValueError("Response is not a JSON array")
-            
-        for r in recommendations:
-            if not isinstance(r, dict) or "title" not in r or "description" not in r or "implementation_plan" not in r:
-                raise ValueError("Recommendation format is incorrect")
-            if len(r["implementation_plan"]) < 3:
-                raise ValueError("Each recommendation must have at least 3 implementation steps")
-        
-        return recommendations
-    except json.JSONDecodeError:
-        raise HTTPException(status_code=500, detail="Failed to parse AI response as JSON")
+        response_text = response.text.strip()
+        response_text = response_text.replace('```json', '').replace('```', '').strip()
+        analysis_result = json.loads(response_text)
+        return analysis_result
+    except json.JSONDecodeError as e:
+        print(f"JSON Parse Error: {str(e)}")
+        print(f"Response text: {response_text}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to parse AI response as JSON"
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -210,17 +209,7 @@ async def generate_questions():
 @app.post("/submit-quiz")
 async def submit_quiz(submission: QuizSubmission):
     try:
-        total_score = 0
-        for answer in submission.answers:
-            answer_index = answer.all_answers.index(answer.selected_answer)
-            points = [10, 25, 50, 75, 100][answer_index]
-            total_score += points
-
-        recommendations = await analyze_answers_and_generate_recommendations(submission.answers)
-        
-        return {
-            "score": total_score / len(submission.answers),
-            "recommendations": recommendations
-        }
+        result = await analyze_answers_and_generate_recommendations(submission.answers)
+        return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) 
