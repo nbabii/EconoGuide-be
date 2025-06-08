@@ -51,6 +51,7 @@ async def generate_quiz_questions():
             - The 15 questions must collectively cover the following topics: budgeting, investing, debt, retirement, and risk management.
             - Answers should reflect real-world financial concepts, habits, and tools (e.g., savings accounts, credit utilization, 401(k), diversification, insurance).
             - Ensure that no answers are factually incorrect, just less optimal.
+            - Ensure that answers are not ordered by the most optimal to the least optimal.
 
             Format:
             Return ONLY a JSON array in the **exact format** shown below. Do not include any explanation or text outside the array.
@@ -136,67 +137,67 @@ async def analyze_answers_and_generate_recommendations(answers: List[QuizAnswer]
     ])
     
     prompt = f"""
-    You are a financial literacy coach and expert in personal finance education.
-    Analyze the following quiz answers and generate a comprehensive assessment in JSON format, including individual question scoring, overall evaluation, and personalized recommendations.
-    Each question is scored based on the selected answer, with a minimum of 10 and a maximum of 100 points.
-    Topics covered include: budgeting, investing, debt management, retirement planning, and risk management.
+            You are a financial literacy coach and expert in personal finance education.
+            Analyze the following quiz answers and generate a comprehensive assessment in JSON format, including individual question scoring, overall evaluation, and personalized recommendations.
+            Each question is scored based on the selected answer, with a minimum of 10 and a maximum of 100 points.
+            Topics covered include: budgeting, investing, debt management, retirement planning, and risk management.
 
-    ---
+            ---
 
-    Quiz Responses:
-    {answers_text}
+            Quiz Responses:
+            {answers_text}
 
-    ---
+            ---
 
-    Output Format (strictly follow this JSON structure):
-    {{
-    "question_scores": [
-        {{
-        "question_id": number,
-        "question": string,
-        "selected_answer": string,
-        "score": number (between 10 and 100),
-        "explanation": string (brief rationale behind the score)
-        }}
-    ],
-    "overall_assessment": {{
-        "total_score": number (sum of individual scores),
-        "score_interpretation": string (interpret the user's overall financial literacy level)
-    }},
-    "targeted_recommendations": [
-        {{
-        "area": string (financial topic needing the most improvement),
-        "area_label": {{
-            "type": string ("svg"),
-            "value": string (inline SVG markup — compact and self-contained, suitable for direct rendering in HTML/React)
-      }},
-        "current_status": string (brief status of user's understanding),
-        "improvement_plan": {{
-            "immediate_actions": [string, string, ...] (2-3 specific actions),
-            "long_term_goals": [string, string, ...] (2-3 goals),
-            "resources": [
+            Output Format (strictly follow this JSON structure):
             {{
-                "title": string,
-                "url": string
-            }}
+            "question_scores": [
+                {{
+                "question_id": number,
+                "question": string,
+                "selected_answer": string,
+                "score": number (between 10 and 100),
+                "explanation": string (brief rationale behind the score)
+                }}
+            ],
+            "overall_assessment": {{
+                "total_score": number (sum of individual scores),
+                "score_interpretation": string (interpret the user's overall financial literacy level)
+            }},
+            "targeted_recommendations": [
+                {{
+                "area": string (financial topic needing the most improvement),
+                "area_label": {{
+                    "type": string ("svg"),
+                    "value": string (inline SVG markup — compact and self-contained, suitable for direct rendering in HTML/React)
+            }},
+                "current_status": string (brief status of user's understanding),
+                "improvement_plan": {{
+                    "immediate_actions": [string, string, ...] (2-3 specific actions),
+                    "long_term_goals": [string, string, ...] (2-3 goals),
+                    "resources": [
+                    {{
+                        "title": string,
+                        "url": string
+                    }}
+                    ]
+                }}
+                }}
             ]
-        }}
-        }}
-    ]
-    }}
+            }}
 
-    Guidelines:
-    - Provide valid JSON output only. No additional text, explanation, or markdown.
-    - Include 5 to 7 targeted recommendations based on the lowest scoring areas.
-    - For each `area_label`, include a compact inline SVG suitable for embedding in a React app.
-        - Ensure the SVGs are clean, semantic, and simple (around 1–3 KB max).
-        - Use accessible, visually distinct SVGs representing each area.
-    - Be specific and constructive in recommendations and improvement plans.
-    - Use up-to-date, practical resources with active links (published within the last 2 years if possible).
-    - Explanations and suggestions should be concise but actionable.
+            Guidelines:
+            - Provide valid JSON output only. No additional text, explanation, or markdown.
+            - Include 5 to 7 targeted recommendations based on the lowest scoring areas.
+            - For each `area_label`, include a compact inline SVG suitable for embedding in a React app.
+                - Ensure the SVGs are clean, semantic, and simple (around 1–3 KB max).
+                - Use accessible, visually distinct SVGs representing each area.
+            - Be specific and constructive in recommendations and improvement plans.
+            - Use up-to-date, practical resources with active links (published within the last 2 years if possible).
+            - Explanations and suggestions should be concise but actionable.
 
-    STRICTLY RETURN ONLY A VALID JSON OBJECT.
-    """
+            STRICTLY RETURN ONLY A VALID JSON OBJECT.
+            """
 
     response = model.generate_content(
         prompt,
