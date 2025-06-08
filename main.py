@@ -169,7 +169,7 @@ async def analyze_answers_and_generate_recommendations(answers: List[QuizAnswer]
                 "area": string (financial topic needing the most improvement),
                 "area_label": {{
                     "type": string ("svg"),
-                    "value": string (inline SVG markup — compact and self-contained, suitable for direct rendering in HTML/React)
+                    "value": string (inline SVG markup suitable for direct rendering in HTML/React)
             }},
                 "current_status": string (brief status of user's understanding),
                 "improvement_plan": {{
@@ -190,11 +190,8 @@ async def analyze_answers_and_generate_recommendations(answers: List[QuizAnswer]
             - Provide valid JSON output only. No additional text, explanation, or markdown.
             - Include 5 to 7 targeted recommendations based on the lowest scoring areas.
             - For each `area_label`, include a compact inline SVG suitable for embedding in a React app.
-                - Visually clean and modern.
+                - Visually clean, modern designed, and representative of the appropriate financial area.
                 - Ensure the SVGs are #1976d2 color.
-                - Uses simple, intuitive visuals to represent the financial topic.
-                - Balanced and centered (good for use in UI components)
-                - Appropriate to represent the financial topic
             - Be specific and constructive in recommendations and improvement plans.
             - Use 2-3 up-to-date, practical resources with active links (published within the last 6-12 months if possible).
             - Explanations and suggestions should be concise but actionable.
