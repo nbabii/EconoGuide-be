@@ -16,21 +16,13 @@ For [Hackonomics 2025](https://hackonomics25.devpost.com/) hackathon project Eco
 - FastAPI
 - Google Cloud Gemini AI 
 
-## Project Structure
-
-```
-be/
-├── main.py             
-├── requirements.txt    
-└── .env               
-```
 
 ## Getting Started
 
 1. Create and activate a virtual environment:
 ```bash
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+source venv/bin/activate
 ```
 
 2. Install dependencies:

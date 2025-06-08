@@ -42,7 +42,7 @@ async def generate_quiz_questions():
     prompt = """You are a financial literacy coach.
             You are a financial literacy coach.
 
-            Your task is to generate 15 single-choice financial literacy assessment questions.
+            Your task is to generate 15, up to current date, single-choice financial literacy assessment questions.
 
             Requirements:
             - Each question must assess an individual's financial knowledge.
@@ -135,50 +135,61 @@ async def analyze_answers_and_generate_recommendations(answers: List[QuizAnswer]
         for a in answers
     ])
     
-    prompt = f"""You are a financial literacy coach.
-    Analyze these quiz answers and provide a comprehensive assessment with scores and recommendations.
-    Each question score is based on the answer selected by the user, min score is 10 and max score is 100.
-    The quiz answers are about personal finance and financial literacy of individual.
-    The quiz answers are about the following topics: budgeting, investing, debt, retirement, risk management.
-    The quiz answers are following:
-    
+    prompt = f"""
+    You are a financial literacy coach and expert in personal finance education.
+    Analyze the following quiz answers and generate a comprehensive assessment in JSON format, including individual question scoring, overall evaluation, and personalized recommendations.
+    Each question is scored based on the selected answer, with a minimum of 10 and a maximum of 100 points.
+    Topics covered include: budgeting, investing, debt management, retirement planning, and risk management.
+
+    ---
+
     Quiz Responses:
     {answers_text}
 
-    Provide a response in the following JSON format:
+    ---
+
+    Output Format (strictly follow this JSON structure):
     {{
-        "question_scores": [
+    "question_scores": [
+        {{
+        "question_id": number,
+        "question": string,
+        "selected_answer": string,
+        "score": number (between 10 and 100),
+        "explanation": string (brief rationale behind the score)
+        }}
+    ],
+    "overall_assessment": {{
+        "total_score": number (sum of individual scores),
+        "score_interpretation": string (interpret the user's overall financial literacy level)
+    }},
+    "targeted_recommendations": [
+        {{
+        "area": string (financial topic needing the most improvement),
+        "current_status": string (brief status of user's understanding),
+        "improvement_plan": {{
+            "immediate_actions": [string, string, ...] (2-3 specific actions),
+            "long_term_goals": [string, string, ...] (2-3 goals),
+            "resources": [
             {{
-                "question_id": number,
-                "question": string,
-                "selected_answer": string,
-                "score": number (10-100),
-                "explanation": string (brief explanation of the score)
+                "title": string,
+                "url": string
             }}
-        ],
-        "overall_assessment": {{
-            "total_score": number (sum of scores for all questions),
-            "score_interpretation": string (brief interpretation of the overall score)
-        }},
-        "targeted_recommendations": [
-            {{
-                "area": string (financial topic needing most improvement),
-                "current_status": string (brief assessment of understanding),
-                "improvement_plan": {{
-                    "immediate_actions": [string] (2-3 specific actions),
-                    "long_term_goals": [string] (2-3 goals),
-                    "resources": [string] (2-3 specific resources like books, websites, tools)
-                }}
-            }}
-        ]
+            ]
+        }}
+        }}
+    ]
     }}
 
-    Requirements:
-    - Provide 5-7 targeted recommendations focusing on lowest scoring areas
-    - Keep explanations concise but actionable, and up to current date
-    - Include specific, practical resources for improvement
+    Guidelines:
+    - Provide valid JSON output only. No additional text, explanation, or markdown.
+    - Include 5 to 7 targeted recommendations based on the lowest scoring areas.
+    - Be specific and constructive in recommendations and improvement plans.
+    - Use up-to-date, practical resources with active links (published within the last 2 years if possible).
+    - Explanations and suggestions should be concise but actionable.
 
-    IMPORTANT: Return ONLY valid JSON, no additional text or explanation."""
+    STRICTLY RETURN ONLY A VALID JSON OBJECT.
+    """
 
     response = model.generate_content(
         prompt,
