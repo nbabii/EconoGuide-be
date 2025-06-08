@@ -166,6 +166,10 @@ async def analyze_answers_and_generate_recommendations(answers: List[QuizAnswer]
     "targeted_recommendations": [
         {{
         "area": string (financial topic needing the most improvement),
+        "area_label": {{
+            "type": string ("svg"),
+            "value": string (inline SVG markup — compact and self-contained, suitable for direct rendering in HTML/React)
+      }},
         "current_status": string (brief status of user's understanding),
         "improvement_plan": {{
             "immediate_actions": [string, string, ...] (2-3 specific actions),
@@ -184,6 +188,9 @@ async def analyze_answers_and_generate_recommendations(answers: List[QuizAnswer]
     Guidelines:
     - Provide valid JSON output only. No additional text, explanation, or markdown.
     - Include 5 to 7 targeted recommendations based on the lowest scoring areas.
+    - For each `area_label`, include a compact inline SVG suitable for embedding in a React app.
+        - Ensure the SVGs are clean, semantic, and simple (around 1–3 KB max).
+        - Use accessible, visually distinct SVGs representing each area.
     - Be specific and constructive in recommendations and improvement plans.
     - Use up-to-date, practical resources with active links (published within the last 2 years if possible).
     - Explanations and suggestions should be concise but actionable.
