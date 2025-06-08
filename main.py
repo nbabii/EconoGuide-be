@@ -190,8 +190,11 @@ async def analyze_answers_and_generate_recommendations(answers: List[QuizAnswer]
             - Provide valid JSON output only. No additional text, explanation, or markdown.
             - Include 5 to 7 targeted recommendations based on the lowest scoring areas.
             - For each `area_label`, include a compact inline SVG suitable for embedding in a React app.
-                - Ensure the SVGs are clean, semantic, and simple (around 1–3 KB max).
-                - Use accessible, visually distinct SVGs representing each area.
+                - Visually clean and modern.
+                - Ensure the SVGs are #1976d2 color.
+                - Uses simple, intuitive visuals to represent the financial topic.
+                - Balanced and centered (good for use in UI components)
+                - Appropriate to represent the financial topic
             - Be specific and constructive in recommendations and improvement plans.
             - Use 2-3 up-to-date, practical resources with active links (published within the last 6-12 months if possible).
             - Explanations and suggestions should be concise but actionable.
