@@ -193,7 +193,7 @@ async def analyze_answers_and_generate_recommendations(answers: List[QuizAnswer]
                 - Ensure the SVGs are clean, semantic, and simple (around 1–3 KB max).
                 - Use accessible, visually distinct SVGs representing each area.
             - Be specific and constructive in recommendations and improvement plans.
-            - Use up-to-date, practical resources with active links (published within the last 2 years if possible).
+            - Use 2-3 up-to-date, practical resources with active links (published within the last 6-12 months if possible).
             - Explanations and suggestions should be concise but actionable.
 
             STRICTLY RETURN ONLY A VALID JSON OBJECT.
