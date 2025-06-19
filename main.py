@@ -42,7 +42,7 @@ async def generate_quiz_questions():
     prompt = """You are a financial literacy coach.
             You are a financial literacy coach.
 
-            Your task is to generate 15, up to current date, single-choice financial literacy assessment questions.
+            Your task is to generate 15, up to the current date, single-choice financial literacy assessment questions.
 
             Requirements:
             - Each question must assess an individual's financial knowledge.
@@ -188,12 +188,12 @@ async def analyze_answers_and_generate_recommendations(answers: List[QuizAnswer]
 
             Guidelines:
             - Provide valid JSON output only. No additional text, explanation, or markdown.
-            - Include 5 to 7 targeted recommendations based on the lowest scoring areas.
+            - Include 5 to 7 targeted recommendations based on the lowest-scoring areas.
             - For each `area_label`, include a compact inline SVG suitable for embedding in a React app.
                 - Visually clean, modern designed, and representative of the appropriate financial area.
                 - Ensure the SVGs are #1976d2 color.
             - Be specific and constructive in recommendations and improvement plans.
-            - Use 2-3 up-to-date, practical resources with active links (published within the last 6-12 months if possible).
+            - For improvement plan resources, use 2-3 popular, practical articles, publications, or blog posts focused on the improvement area, with active links (published within the last 6-12 months and still present).
             - Explanations and suggestions should be concise but actionable.
 
             STRICTLY RETURN ONLY A VALID JSON OBJECT.
