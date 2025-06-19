@@ -193,7 +193,7 @@ async def analyze_answers_and_generate_recommendations(answers: List[QuizAnswer]
                 - Visually clean, modern designed, and representative of the appropriate financial area.
                 - Ensure the SVGs are #1976d2 color.
             - Be specific and constructive in recommendations and improvement plans.
-            - For improvement plan resources, use 2-3 popular, practical articles, publications, or blog posts focused on the improvement area, with active links (published within the last 6-12 months and still present).
+            - For improvement plan resources, find and use 2 existing practical articles, publications, or blog posts focused on the improvement area.
             - Explanations and suggestions should be concise but actionable.
 
             STRICTLY RETURN ONLY A VALID JSON OBJECT.
