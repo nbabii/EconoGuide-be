@@ -7,6 +7,7 @@ import os
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
+import aiohttp
 
 load_dotenv()
 
@@ -51,7 +52,7 @@ config = types.GenerateContentConfig(
 )
 
 async def generate_quiz_questions():
-    prompt = """You are a financial literacy coach.
+    prompt = """
             You are a financial literacy coach.
 
             Your task is to generate 15, up to the current date, single-choice financial literacy assessment questions.
@@ -61,10 +62,9 @@ async def generate_quiz_questions():
             - Each question must have exactly 5 answer choices.
             - All 5 answers must be technically valid but represent increasing levels of financial understanding, from basic to optimal.
             - The 15 questions must collectively cover the following topics: budgeting, investing, debt, retirement, and risk management.
-            - Answers should reflect real-world financial concepts, habits, and tools (e.g., savings accounts, credit utilization, 401(k), diversification, insurance).
+            - Answers should reflect real-world financial concepts, habits, and tools.
             - Ensure that no answers are factually incorrect, just less optimal.
             - Ensure that answers are not ordered by the most optimal to the least optimal.
-            - Use current financial data and trends from the web to ensure questions are relevant and up-to-date.
 
             Format:
             Return ONLY a JSON array in the **exact format** shown below. Do not include any explanation or text outside the array.
@@ -95,8 +95,19 @@ async def generate_quiz_questions():
         response = client.models.generate_content(
             model="gemini-2.5-flash",
             contents=prompt,
-            config=config
         )
+
+        if response is None:
+            raise HTTPException(
+                status_code=500,
+                detail="Gemini API returned None response. Please check your API key and model availability."
+            )
+
+        if not hasattr(response, 'text') or response.text is None:
+            raise HTTPException(
+                status_code=500,
+                detail="Gemini API response has no text content. Please check your API key and model availability."
+            )
 
         response_text = response.text.strip()
         response_text = response_text.replace('```json', '').replace('```', '').strip()
@@ -131,8 +142,11 @@ async def generate_quiz_questions():
                 status_code=500,
                 detail=f"Invalid response format: {str(e)}"
             )
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"Gemini API Error: {str(e)}")
+        print(f"Error type: {type(e)}")
         raise HTTPException(
             status_code=500,
             detail=f"Error generating questions: {str(e)}"
@@ -149,10 +163,7 @@ async def analyze_answers_and_generate_recommendations(answers: List[QuizAnswer]
     prompt = f"""
             You are a financial literacy coach and expert in personal finance education.
             Analyze the following quiz answers and generate a comprehensive assessment in JSON format, including individual question scoring, overall evaluation, and personalized recommendations.
-            Each question is scored based on the selected answer, with a minimum of 10 and a maximum of 100 points.
-            Topics covered include: budgeting, investing, debt management, retirement planning, and risk management.
-
-            Use current financial data, market trends, and up-to-date information from the web to provide the most relevant and accurate recommendations.
+            Each question is scored based on the selected answer, with a minimum of 10 and a maximum of 100 points, you need to score each question based on the selected answer.
 
             ---
 
@@ -190,7 +201,7 @@ async def analyze_answers_and_generate_recommendations(answers: List[QuizAnswer]
                     "resources": [
                     {{
                         "title": string,
-                        "url": string
+                        "url": string (MUST be a real, active URL found through web search, check requirements under 'CRITICAL GUIDELINES FOR IMPROVEMENT PLAN RESOURCES')
                     }}
                     ]
                 }}
@@ -198,14 +209,21 @@ async def analyze_answers_and_generate_recommendations(answers: List[QuizAnswer]
             ]
             }}
 
-            Guidelines:
+            CRITICAL GUIDELINES FOR IMPROVEMENT PLAN RESOURCES:
+            - You MUST use web search tool to find real, active URLs for financial education resources to explain the recommendation
+            - ONLY include educational content
+            - DO NOT include tools, apps, services, or commercial products
+            - Prefer well-known, reputable financial websites, educational institutions, and organizations
+            - Include 2-3 resources per recommendation area
+
+
+            GENERAL GUIDELINES:
             - Provide valid JSON output only. No additional text, explanation, or markdown.
             - Include 5 to 7 targeted recommendations based on the lowest-scoring areas.
             - For each `area_label`, include a compact inline SVG suitable for embedding in a React app.
                 - Visually clean, modern designed, and representative of the appropriate financial area.
                 - Ensure the SVGs are #1976d2 color.
             - Be specific and constructive in recommendations and improvement plans.
-            - Use 2-3 up-to-date, practical resources with active URLs and published within the last 12 months.
             - Explanations and suggestions should be concise but actionable.
             - Leverage current financial market conditions, interest rates, and economic trends when providing recommendations.
             - Include recent financial news and regulatory changes that might affect personal finance decisions.
@@ -217,13 +235,27 @@ async def analyze_answers_and_generate_recommendations(answers: List[QuizAnswer]
         response = client.models.generate_content(
             model="gemini-2.5-flash",
             contents=prompt,
-            config=config
+            config={"tools": [{"google_search": {}}]},
         )
+
+        if response is None:
+            raise HTTPException(
+                status_code=500,
+                detail="Gemini API returned None response. Please check your API key and model availability."
+            )
+
+        if not hasattr(response, 'text') or response.text is None:
+            raise HTTPException(
+                status_code=500,
+                detail="Gemini API response has no text content. Please check your API key and model availability."
+            )
 
         response_text = response.text.strip()
         response_text = response_text.replace('```json', '').replace('```', '').strip()
         analysis_result = json.loads(response_text)
         return analysis_result
+    except HTTPException:
+        raise
     except json.JSONDecodeError as e:
         print(f"JSON Parse Error: {str(e)}")
         print(f"Response text: {response_text}")
@@ -233,6 +265,7 @@ async def analyze_answers_and_generate_recommendations(answers: List[QuizAnswer]
         )
     except Exception as e:
         print(f"Gemini API Error: {str(e)}")
+        print(f"Error type: {type(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/")
