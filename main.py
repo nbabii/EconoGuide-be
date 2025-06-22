@@ -36,7 +36,7 @@ class QuizSubmission(BaseModel):
     answers: List[QuizAnswer]
 
 vertexai.init(project="econoguide", location="us-central1")
-model = GenerativeModel("gemini-2.0-flash")
+model = GenerativeModel("gemini-2.5-flash-lite-preview-06-17")
 
 async def generate_quiz_questions():
     prompt = """You are a financial literacy coach.
@@ -193,7 +193,7 @@ async def analyze_answers_and_generate_recommendations(answers: List[QuizAnswer]
                 - Visually clean, modern designed, and representative of the appropriate financial area.
                 - Ensure the SVGs are #1976d2 color.
             - Be specific and constructive in recommendations and improvement plans.
-            - Use 2-3 up-to-date, practical resources with active URLs and published within the last 6-12 months.
+            - Use 2-3 up-to-date, practical resources with active URLs and published within the last 12 months.
             - Explanations and suggestions should be concise but actionable.
 
             STRICTLY RETURN ONLY A VALID JSON OBJECT.
