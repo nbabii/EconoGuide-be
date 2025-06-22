@@ -36,7 +36,7 @@ class QuizSubmission(BaseModel):
     answers: List[QuizAnswer]
 
 vertexai.init(project="econoguide", location="us-central1")
-model = GenerativeModel("gemini-2.5-flash-lite-preview-06-17")
+model = GenerativeModel("gemini-2.5-flash")
 
 async def generate_quiz_questions():
     prompt = """You are a financial literacy coach.
