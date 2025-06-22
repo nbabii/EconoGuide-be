@@ -4,6 +4,8 @@ steps:
       - 'build'
       - '-t'
       - 'gcr.io/$PROJECT_ID/econoguide-backend'
+      - '--build-arg'
+      - 'GOOGLE_API_KEY=${_GOOGLE_API_KEY}'
       - '.'
 
   - name: 'gcr.io/cloud-builders/docker'
@@ -22,6 +24,8 @@ steps:
       - '--platform'
       - 'managed'
       - '--allow-unauthenticated'
+      - '--set-env-vars'
+      - 'GOOGLE_API_KEY=${_GOOGLE_API_KEY}'
       - '--port'
       - '8080'
       - '--timeout'
@@ -29,6 +33,9 @@ steps:
 
 images:
   - 'gcr.io/$PROJECT_ID/econoguide-backend'
+
+substitutions:
+  _GOOGLE_API_KEY: ''
 
 options:
   logging: CLOUD_LOGGING_ONLY 

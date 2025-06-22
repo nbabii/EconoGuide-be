@@ -5,8 +5,8 @@ from typing import List
 import json
 import os
 from dotenv import load_dotenv
-import vertexai
-from vertexai.generative_models import GenerativeModel
+from google import genai
+from google.genai import types
 
 load_dotenv()
 
@@ -35,8 +35,20 @@ class QuizAnswer(BaseModel):
 class QuizSubmission(BaseModel):
     answers: List[QuizAnswer]
 
-vertexai.init(project="econoguide", location="us-central1")
-model = GenerativeModel("gemini-2.5-flash")
+
+api_key = os.getenv("GOOGLE_API_KEY")
+if not api_key:
+    raise ValueError("GOOGLE_API_KEY environment variable is required")
+
+client = genai.Client(api_key=api_key)
+
+grounding_tool = types.Tool(
+    google_search=types.GoogleSearch()
+)
+
+config = types.GenerateContentConfig(
+    tools=[grounding_tool]
+)
 
 async def generate_quiz_questions():
     prompt = """You are a financial literacy coach.
@@ -52,6 +64,7 @@ async def generate_quiz_questions():
             - Answers should reflect real-world financial concepts, habits, and tools (e.g., savings accounts, credit utilization, 401(k), diversification, insurance).
             - Ensure that no answers are factually incorrect, just less optimal.
             - Ensure that answers are not ordered by the most optimal to the least optimal.
+            - Use current financial data and trends from the web to ensure questions are relevant and up-to-date.
 
             Format:
             Return ONLY a JSON array in the **exact format** shown below. Do not include any explanation or text outside the array.
@@ -75,21 +88,18 @@ async def generate_quiz_questions():
             - Each object must follow the format above.
             - Do not add any commentary, markdown, or explanations.
             - Output must be valid JSON only.
+            - Use current financial information and market trends when generating questions.
             """
 
     try:
-        response = model.generate_content(
-            prompt,
-            generation_config={
-                "temperature": 0.7,
-                "top_p": 0.8,
-                "top_k": 40
-            }
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt,
+            config=config
         )
 
         response_text = response.text.strip()
         response_text = response_text.replace('```json', '').replace('```', '').strip()
-
 
         try:
             questions = json.loads(response_text)
@@ -141,6 +151,8 @@ async def analyze_answers_and_generate_recommendations(answers: List[QuizAnswer]
             Analyze the following quiz answers and generate a comprehensive assessment in JSON format, including individual question scoring, overall evaluation, and personalized recommendations.
             Each question is scored based on the selected answer, with a minimum of 10 and a maximum of 100 points.
             Topics covered include: budgeting, investing, debt management, retirement planning, and risk management.
+
+            Use current financial data, market trends, and up-to-date information from the web to provide the most relevant and accurate recommendations.
 
             ---
 
@@ -195,20 +207,19 @@ async def analyze_answers_and_generate_recommendations(answers: List[QuizAnswer]
             - Be specific and constructive in recommendations and improvement plans.
             - Use 2-3 up-to-date, practical resources with active URLs and published within the last 12 months.
             - Explanations and suggestions should be concise but actionable.
+            - Leverage current financial market conditions, interest rates, and economic trends when providing recommendations.
+            - Include recent financial news and regulatory changes that might affect personal finance decisions.
 
             STRICTLY RETURN ONLY A VALID JSON OBJECT.
             """
 
-    response = model.generate_content(
-        prompt,
-        generation_config={
-            "temperature": 0.7,
-            "top_p": 0.8,
-            "top_k": 40
-        }
-    )
-
     try:
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt,
+            config=config
+        )
+
         response_text = response.text.strip()
         response_text = response_text.replace('```json', '').replace('```', '').strip()
         analysis_result = json.loads(response_text)
@@ -221,6 +232,7 @@ async def analyze_answers_and_generate_recommendations(answers: List[QuizAnswer]
             detail=f"Failed to parse AI response as JSON"
         )
     except Exception as e:
+        print(f"Gemini API Error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/")
